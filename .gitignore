@@ -13,3 +13,8 @@ coverage/
 *.tsbuildinfo
 *.bundled_*.mjs
 *.timestamp-*.mjs
+
+# Local AI tooling
+.claude/
+CLAUDE.md
+graphify-out/
