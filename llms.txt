@@ -1,0 +1,71 @@
+# discord-ops
+
+> Node SDK for sending Discord alerts from a SaaS backend. Fire-and-forget, webhook or bot mode, zero infra.
+
+`discord-ops` is a small, focused library for one job: pushing "something happened" messages from backend code into a Discord channel without blocking the request and without throwing. It supports two modes — Discord webhooks (one URL per channel, zero permissions, recommended) and bot tokens (one token, many channels, bot identity). Both expose the same `notify({ topic, message })` API.
+
+## Docs
+
+- [README](README.md): overview, install, 2-minute quickstart, typed topics, configuration reference.
+- [Discord setup](docs/discord-setup.md): step-by-step Discord UI walkthroughs for creating webhooks or bots.
+- [Getting IDs](docs/getting-ids.md): how to enable Developer Mode and copy channel / server / user / message IDs.
+- [Environment variables](docs/env-vars.md): suggested env conventions for webhook mode and bot mode.
+
+## Examples
+
+- [express-minimal](examples/express-minimal/): Express signup endpoint with fire-and-forget `notify()`.
+- [usecase-pattern](examples/usecase-pattern/): clean-architecture usecase with a shared `notify` module (the canonical pattern).
+- [nextjs-api-route](examples/nextjs-api-route/): Next.js App Router handler, including `waitUntil` for serverless.
+
+## API
+
+- `createNotifier(options)` returns `(input) => void` for fire-and-forget, with `.async(input) => Promise<NotifyResult>` for when you need the result.
+- `DiscordOpsError` with `code` ∈ `{ validation_error, config_error, timeout, network_error, rate_limited, discord_api_error, unknown }`.
+
+## Canonical integration pattern (USE THIS)
+
+```ts
+// lib/notify.ts — create ONCE at startup
+import { createNotifier } from "discord-ops";
+
+export enum Topic {
+  SIGNUP = "signup",
+  PAYMENT = "payment",
+  ERROR = "error",
+}
+
+export const notify = createNotifier<Topic>({
+  mode: "webhook",
+  webhooks: {
+    [Topic.SIGNUP]: process.env.DISCORD_WEBHOOK_SIGNUP,
+    [Topic.PAYMENT]: process.env.DISCORD_WEBHOOK_PAYMENT,
+    [Topic.ERROR]: process.env.DISCORD_WEBHOOK_ERROR,
+  },
+});
+
+// anywhere in usecases — NO await, never blocks, never throws
+notify({ topic: Topic.SIGNUP, message: `New user: ${user.email}` });
+```
+
+## Anti-patterns (DO NOT DO)
+
+- Do NOT `await notify(...)` in hot paths. It slows the response by up to `timeoutMs` + retries on bad days. Use the default fire-and-forget.
+- Do NOT create a new `createNotifier(...)` per request. Create once at module scope.
+- Do NOT log or print `process.env.DISCORD_BOT_TOKEN` or webhook URLs — treat them like DB credentials.
+- Do NOT pass objects to `message`. It must be a string ≤ 2000 chars. Serialize yourself with `JSON.stringify` if needed.
+- Do NOT wrap `notify()` in try/catch expecting errors — it never throws in the default mode. Use `notify.async()` if you need to catch.
+- Do NOT rely on message delivery in `development` or `test`. By default, only `production` fires. Override with `enabledIn: [...]` if you need staging.
+- Do NOT call `notify()` from `test` files expecting network calls — they are skipped (unless you override `enabledIn`).
+
+## Common mistakes
+
+- Getting `config_error: no webhook URL configured for topic "X"`: the topic passed isn't a key in `webhooks`. Check for typos or missing env vars.
+- Getting `config_error: channel ID must be a Discord snowflake`: you pasted an invite link or URL instead of the channel ID. See docs/getting-ids.md.
+- Messages not arriving in production but no error: check `enabledIn` and your `NODE_ENV`.
+- Messages not arriving in bot mode: check the bot has **Send Messages** permission in the target channel (channel settings → Permissions).
+
+## File conventions
+
+- `createNotifier` is called exactly once per process, typically in `lib/notify.ts` or `shared/utils/notify.ts`.
+- Use a TypeScript enum or string union for topics; pass it as the generic `createNotifier<MyTopics>(...)` for type safety.
+- Webhook URLs and bot tokens always come from `process.env`, never hardcoded.

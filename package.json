@@ -1,0 +1,26 @@
+{
+  "name": "discord-ops-monorepo",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Monorepo for discord-ops — plug-and-play Discord alerts for your SaaS backend",
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=packages/node",
+    "test": "npm run test --workspace=packages/node",
+    "test:run": "npm run test:run --workspace=packages/node",
+    "typecheck": "npm run typecheck --workspace=packages/node",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT",
+  "author": "Luca Gomes <lucapgomes11@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lucapgomes/discord-ops.git"
+  }
+}
