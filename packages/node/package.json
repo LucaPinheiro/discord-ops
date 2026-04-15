@@ -1,6 +1,6 @@
 {
   "name": "discord-ops-alert",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Plug-and-play Discord alerts for your SaaS backend. Fire-and-forget, zero-infra, webhook or bot.",
   "keywords": [
     "discord",
