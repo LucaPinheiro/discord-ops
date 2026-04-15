@@ -38,7 +38,7 @@ DISCORD_WEBHOOK_SIGNUP=https://discord.com/api/webhooks/.../...
 ```
 
 ```ts
-import { createNotifier } from "discord-ops";
+import { createNotifier } from "discord-ops-alert";
 
 const notify = createNotifier({
   mode: "webhook",
@@ -135,7 +135,7 @@ CHANNEL_ERRORS=987654321098765432
 ```
 
 ```ts
-import { createNotifier } from "discord-ops";
+import { createNotifier } from "discord-ops-alert";
 
 const notify = createNotifier({
   mode: "bot",

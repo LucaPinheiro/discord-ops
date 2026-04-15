@@ -2,14 +2,14 @@
 
 > Plug-and-play Discord alerts for your SaaS backend. Fire-and-forget, zero infra, webhook or bot.
 
-[![npm version](https://img.shields.io/npm/v/discord-ops.svg)](https://www.npmjs.com/package/discord-ops)
-[![license](https://img.shields.io/npm/l/discord-ops.svg)](./LICENSE)
+[![npm version](https://img.shields.io/npm/v/discord-ops-alert.svg)](https://www.npmjs.com/package/discord-ops-alert)
+[![license](https://img.shields.io/npm/l/discord-ops-alert.svg)](./LICENSE)
 [![CI](https://github.com/LucaPinheiro/discord-ops/actions/workflows/ci.yml/badge.svg)](https://github.com/LucaPinheiro/discord-ops/actions/workflows/ci.yml)
 
 `discord-ops` is the lightest way to get "something happened" messages from your backend into a Discord channel. Signup notifications, payment alerts, error pings — stuff that used to need Datadog, Sentry, or a PagerDuty trial. Drop it into any Node backend in two minutes.
 
 ```ts
-import { createNotifier } from "discord-ops";
+import { createNotifier } from "discord-ops-alert";
 
 const notify = createNotifier({
   mode: "webhook",
@@ -31,11 +31,11 @@ The trade-off: you won't get dashboards, query languages, or SLO math. You will 
 ## Install
 
 ```bash
-npm install discord-ops
+npm install discord-ops-alert
 # or
-pnpm add discord-ops
+pnpm add discord-ops-alert
 # or
-yarn add discord-ops
+yarn add discord-ops-alert
 ```
 
 Requires Node 18+ (uses native `fetch`).
@@ -50,7 +50,7 @@ Requires Node 18+ (uses native `fetch`).
    ```
 4. Wire it up:
    ```ts
-   import { createNotifier } from "discord-ops";
+   import { createNotifier } from "discord-ops-alert";
    const notify = createNotifier({
      mode: "webhook",
      webhooks: { signup: process.env.DISCORD_WEBHOOK_SIGNUP },

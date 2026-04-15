@@ -6,7 +6,7 @@
  * Set DISCORD_WEBHOOK_SIGNUP in your .env before running.
  */
 import express from "express";
-import { createNotifier } from "discord-ops";
+import { createNotifier } from "discord-ops-alert";
 
 const app = express();
 app.use(express.json());

@@ -1,4 +1,4 @@
-import { createNotifier } from "discord-ops";
+import { createNotifier } from "discord-ops-alert";
 
 /**
  * Shared notifier, created once at process startup.

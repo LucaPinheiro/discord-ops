@@ -1,6 +1,6 @@
 # express-minimal
 
-Minimal Express app using `discord-ops`.
+Minimal Express app using `discord-ops-alert`.
 
 ```bash
 npm install

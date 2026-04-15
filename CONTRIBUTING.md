@@ -17,7 +17,7 @@ Node 18+ is required (the SDK uses native `fetch`).
 ## Project layout
 
 ```
-packages/node/        the published SDK (npm: discord-ops)
+packages/node/        the published SDK (npm: discord-ops-alert)
 examples/             runnable demos, not published
 docs/                 user-facing docs
 llms.txt              machine-readable guide for coding assistants

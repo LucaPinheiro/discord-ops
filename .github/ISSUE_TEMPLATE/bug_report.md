@@ -20,7 +20,7 @@ Minimal code or steps:
 **Actual behavior**
 
 **Environment**
-- `discord-ops` version:
+- `discord-ops-alert` version:
 - Node version:
 - Mode: [ ] webhook [ ] bot
 - OS:

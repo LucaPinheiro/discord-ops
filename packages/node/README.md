@@ -3,11 +3,11 @@
 > Plug-and-play Discord alerts for your SaaS backend. Fire-and-forget, zero infra, webhook or bot.
 
 ```bash
-npm install discord-ops
+npm install discord-ops-alert
 ```
 
 ```ts
-import { createNotifier } from "discord-ops";
+import { createNotifier } from "discord-ops-alert";
 
 const notify = createNotifier({
   mode: "webhook",

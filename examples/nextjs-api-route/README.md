@@ -20,7 +20,7 @@ export async function POST(req: Request) {
 
 ```ts
 // lib/notify.ts
-import { createNotifier } from "discord-ops";
+import { createNotifier } from "discord-ops-alert";
 
 export const notify = createNotifier({
   mode: "webhook",

@@ -2,7 +2,7 @@
  * discord-ops — plug-and-play Discord alerts for your SaaS backend.
  *
  * Quick start (webhook mode):
- *   import { createNotifier } from "discord-ops";
+ *   import { createNotifier } from "discord-ops-alert";
  *   const notify = createNotifier({
  *     mode: "webhook",
  *     webhooks: { login: process.env.DISCORD_WEBHOOK_LOGIN },

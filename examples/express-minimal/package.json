@@ -7,7 +7,7 @@
     "dev": "tsx src/server.ts"
   },
   "dependencies": {
-    "discord-ops": "*",
+    "discord-ops-alert": "*",
     "express": "^4.19.2"
   },
   "devDependencies": {
