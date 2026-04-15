@@ -6,7 +6,7 @@ import {
   sleep,
   type ResolvedRetryConfig,
 } from "./retry.js";
-import type { Logger, RetryConfig } from "./types.js";
+import type { Logger, RetryConfig, RetryEvent } from "./types.js";
 
 export interface HttpRequest {
   url: string;
@@ -26,6 +26,9 @@ export interface HttpExecutorDeps {
   timeoutMs: number;
   retry?: RetryConfig;
   logger: Logger;
+  /** External abort signal — e.g. from NotifyInput. */
+  signal?: AbortSignal;
+  onRetry?: (event: RetryEvent) => void;
 }
 
 /**
@@ -37,10 +40,13 @@ export async function executeRequest(req: HttpRequest, deps: HttpExecutorDeps): 
   const retry = resolveRetry(deps.retry);
   const fetchImpl = deps.fetchImpl ?? fetch;
 
+  // Honor external aborts up-front — no point starting a request.
+  throwIfAborted(deps.signal);
+
   let lastError: unknown;
   for (let attempt = 1; attempt <= retry.maxAttempts; attempt++) {
     try {
-      const response = await callOnce(fetchImpl, req, deps.timeoutMs);
+      const response = await callOnce(fetchImpl, req, deps.timeoutMs, deps.signal);
       if (response.status >= 200 && response.status < 300) {
         return { status: response.status, data: response.data, attempts: attempt };
       }
@@ -52,7 +58,13 @@ export async function executeRequest(req: HttpRequest, deps: HttpExecutorDeps): 
           attempt,
           nextDelayMs: backoff,
         });
-        await sleep(backoff);
+        deps.onRetry?.({
+          attempt,
+          nextDelayMs: backoff,
+          reason: "status",
+          status: response.status,
+        });
+        await sleep(backoff, deps.signal);
         continue;
       }
       // non-retryable or last attempt
@@ -65,19 +77,29 @@ export async function executeRequest(req: HttpRequest, deps: HttpExecutorDeps): 
       lastError = err;
       // Pass through DiscordOpsError raised above without re-wrapping.
       if (err instanceof DiscordOpsError) {
-        if (err.code !== ErrorCodes.NETWORK && err.code !== ErrorCodes.TIMEOUT) {
+        if (
+          err.code !== ErrorCodes.NETWORK &&
+          err.code !== ErrorCodes.TIMEOUT
+        ) {
           throw err;
         }
       }
       // Network / timeout — retry if attempts remain.
       if (attempt < retry.maxAttempts) {
         const backoff = computeBackoff(attempt, retry);
+        const errorObj = err instanceof Error ? err : new Error(String(err));
         deps.logger.warn("network error, retrying", {
           attempt,
           nextDelayMs: backoff,
-          error: err instanceof Error ? err.message : String(err),
+          error: errorObj.message,
         });
-        await sleep(backoff);
+        deps.onRetry?.({
+          attempt,
+          nextDelayMs: backoff,
+          reason: err instanceof DiscordOpsError && err.code === ErrorCodes.TIMEOUT ? "timeout" : "network",
+          error: errorObj,
+        });
+        await sleep(backoff, deps.signal);
         continue;
       }
       throw normalizeError(err);
@@ -87,15 +109,42 @@ export async function executeRequest(req: HttpRequest, deps: HttpExecutorDeps): 
   throw normalizeError(lastError);
 }
 
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw new DiscordOpsError("request aborted", {
+      code: ErrorCodes.ABORTED,
+      cause: signal.reason,
+    });
+  }
+}
+
 interface RawResponse {
   status: number;
   data: any;
   headers: Headers;
 }
 
-async function callOnce(fetchImpl: typeof fetch, req: HttpRequest, timeoutMs: number): Promise<RawResponse> {
+async function callOnce(
+  fetchImpl: typeof fetch,
+  req: HttpRequest,
+  timeoutMs: number,
+  external?: AbortSignal
+): Promise<RawResponse> {
+  // Combine internal timeout with optional external abort signal.
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const timer = setTimeout(() => controller.abort(new Error("timeout")), timeoutMs);
+  const onExternalAbort = () => controller.abort(external?.reason);
+  if (external) {
+    if (external.aborted) {
+      clearTimeout(timer);
+      throw new DiscordOpsError("request aborted", {
+        code: ErrorCodes.ABORTED,
+        cause: external.reason,
+      });
+    }
+    external.addEventListener("abort", onExternalAbort, { once: true });
+  }
+
   try {
     const response = await fetchImpl(req.url, {
       method: req.method,
@@ -114,6 +163,13 @@ async function callOnce(fetchImpl: typeof fetch, req: HttpRequest, timeoutMs: nu
     }
     return { status: response.status, data, headers: response.headers };
   } catch (err) {
+    // External abort takes precedence over internal timeout for error classification.
+    if (external?.aborted) {
+      throw new DiscordOpsError("request aborted", {
+        code: ErrorCodes.ABORTED,
+        cause: external.reason,
+      });
+    }
     if ((err as Error)?.name === "AbortError") {
       throw new DiscordOpsError(`request timed out after ${timeoutMs}ms`, {
         code: ErrorCodes.TIMEOUT,
@@ -126,6 +182,7 @@ async function callOnce(fetchImpl: typeof fetch, req: HttpRequest, timeoutMs: nu
     });
   } finally {
     clearTimeout(timer);
+    external?.removeEventListener("abort", onExternalAbort);
   }
 }
 

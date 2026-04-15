@@ -1,6 +1,6 @@
 import { DiscordOpsError, ErrorCodes } from "../errors.js";
 import { executeRequest } from "../http.js";
-import type { BotOptions, Logger, NotifyInput, RetryConfig } from "../types.js";
+import type { BotOptions, Logger, NotifyInput, RetryConfig, RetryEvent } from "../types.js";
 import { validateBotToken, validateChannelId } from "../validation.js";
 
 const DISCORD_API_BASE = "https://discord.com/api/v10";
@@ -10,6 +10,8 @@ export interface BotTransportDeps {
   logger: Logger;
   timeoutMs: number;
   retry?: RetryConfig;
+  signal?: AbortSignal;
+  onRetry?: (event: RetryEvent) => void;
 }
 
 export interface ResolvedBotConfig<TTopics extends string> {
@@ -61,6 +63,8 @@ export async function sendViaBot<TTopics extends string>(
       logger: deps.logger,
       timeoutMs: deps.timeoutMs,
       retry: deps.retry,
+      signal: deps.signal,
+      onRetry: deps.onRetry,
     }
   );
 

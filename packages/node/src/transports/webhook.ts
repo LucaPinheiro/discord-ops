@@ -1,6 +1,6 @@
 import { DiscordOpsError, ErrorCodes } from "../errors.js";
 import { executeRequest } from "../http.js";
-import type { Logger, NotifyInput, RetryConfig, WebhookOptions } from "../types.js";
+import type { Logger, NotifyInput, RetryConfig, RetryEvent, WebhookOptions } from "../types.js";
 import { validateWebhookUrl } from "../validation.js";
 
 export interface WebhookTransportDeps {
@@ -8,6 +8,8 @@ export interface WebhookTransportDeps {
   logger: Logger;
   timeoutMs: number;
   retry?: RetryConfig;
+  signal?: AbortSignal;
+  onRetry?: (event: RetryEvent) => void;
 }
 
 export interface ResolvedWebhookConfig<TTopics extends string> {
@@ -52,7 +54,10 @@ export async function sendViaWebhook<TTopics extends string>(
   if (avatarUrl) body.avatar_url = avatarUrl;
 
   // wait=true so Discord returns the created message (including id).
-  const finalUrl = url.includes("?") ? `${url}&wait=true` : `${url}?wait=true`;
+  // Use URL object to avoid dup params if caller already has ?wait= in their URL.
+  const parsed = new URL(url);
+  parsed.searchParams.set("wait", "true");
+  const finalUrl = parsed.toString();
 
   const resp = await executeRequest(
     {
@@ -69,6 +74,8 @@ export async function sendViaWebhook<TTopics extends string>(
       logger: deps.logger,
       timeoutMs: deps.timeoutMs,
       retry: deps.retry,
+      signal: deps.signal,
+      onRetry: deps.onRetry,
     }
   );
 

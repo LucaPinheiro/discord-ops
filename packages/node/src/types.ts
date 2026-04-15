@@ -20,6 +20,14 @@ export interface RetryConfig {
   maxDelayMs?: number;
 }
 
+export interface RetryEvent {
+  attempt: number;
+  nextDelayMs: number;
+  reason: "network" | "timeout" | "status";
+  status?: number;
+  error?: Error;
+}
+
 export interface CommonOptions {
   /**
    * Environments in which notifications actually fire.
@@ -32,7 +40,7 @@ export interface CommonOptions {
    * falling back to 'development'.
    */
   environment?: Environment;
-  /** Request timeout in ms. Default 3000. */
+  /** Request timeout in ms. Default 5000. */
   timeoutMs?: number;
   /** Retry config. */
   retry?: RetryConfig;
@@ -43,6 +51,27 @@ export interface CommonOptions {
    * If false (default), notify() returns void and errors are swallowed to the logger.
    */
   awaitByDefault?: boolean;
+  /**
+   * Called when a notification fails in fire-and-forget mode. Without this,
+   * failures are only visible via the logger — easy to miss in production.
+   * The error is already logged before this runs; exceptions thrown here
+   * are swallowed to avoid cascading failures.
+   */
+  onError?: (error: DiscordOpsErrorLike, input: NotifyInput) => void;
+  /**
+   * Called before each retry (both transient HTTP status and network errors).
+   * Useful for metrics / detecting rate-limit pressure in real time.
+   */
+  onRetry?: (event: RetryEvent) => void;
+}
+
+/**
+ * Shape-only type alias so consumers don't need to import the concrete
+ * DiscordOpsError class just to type an onError callback.
+ */
+export interface DiscordOpsErrorLike extends Error {
+  code: string;
+  status?: number;
 }
 
 export interface WebhookOptions<TTopics extends string = string> extends CommonOptions {
@@ -74,6 +103,12 @@ export interface NotifyInput<TTopics extends string = string> {
   username?: string;
   /** Override avatar URL (webhook mode only). */
   avatarUrl?: string;
+  /**
+   * Optional AbortSignal. If aborted, pending request is cancelled
+   * and notify() rejects/returns an error. In fire-and-forget mode,
+   * aborted calls surface via onError / logger.
+   */
+  signal?: AbortSignal;
 }
 
 export interface NotifyResult {

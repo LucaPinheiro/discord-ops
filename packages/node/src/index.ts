@@ -16,6 +16,7 @@ export { MAX_MESSAGE_LENGTH } from "./validation.js";
 export type {
   BotOptions,
   CommonOptions,
+  DiscordOpsErrorLike,
   Environment,
   Logger,
   Notifier,
@@ -23,5 +24,6 @@ export type {
   NotifyInput,
   NotifyResult,
   RetryConfig,
+  RetryEvent,
   WebhookOptions,
 } from "./types.js";

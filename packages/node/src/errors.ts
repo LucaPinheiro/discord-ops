@@ -23,6 +23,7 @@ export const ErrorCodes = {
   NETWORK: "network_error",
   RATE_LIMITED: "rate_limited",
   DISCORD_API: "discord_api_error",
+  ABORTED: "aborted",
   UNKNOWN: "unknown",
 } as const;
 

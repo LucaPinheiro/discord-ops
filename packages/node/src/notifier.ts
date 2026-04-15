@@ -12,7 +12,7 @@ import { resolveWebhookConfig, sendViaWebhook, type ResolvedWebhookConfig } from
 import { notifyInputSchema } from "./validation.js";
 
 const DEFAULT_ENABLED_IN: Environment[] = ["production"];
-const DEFAULT_TIMEOUT_MS = 3000;
+const DEFAULT_TIMEOUT_MS = 5000;
 
 export interface InternalFactoryDeps {
   fetchImpl?: typeof fetch;
@@ -34,6 +34,8 @@ export function createNotifier<TTopics extends string = string>(
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const retry = options.retry;
   const awaitByDefault = options.awaitByDefault ?? false;
+  const onError = options.onError;
+  const onRetry = options.onRetry;
 
   // Resolve transport config up-front so config errors throw at init time,
   // not at first notify().
@@ -69,12 +71,16 @@ export function createNotifier<TTopics extends string = string>(
             logger,
             timeoutMs,
             retry,
+            signal: input.signal,
+            onRetry,
           })
         : await sendViaBot(input, botCfg!, {
             fetchImpl: internal.fetchImpl,
             logger,
             timeoutMs,
             retry,
+            signal: input.signal,
+            onRetry,
           });
 
       logger.info("notification sent", {
@@ -102,9 +108,17 @@ export function createNotifier<TTopics extends string = string>(
     if (awaitByDefault) {
       return send(input);
     }
-    // Fire and forget: swallow errors to logger.
-    send(input).catch(() => {
-      // already logged in send()
+    // Fire and forget: swallow errors to logger + optional onError callback.
+    send(input).catch((err) => {
+      if (onError) {
+        try {
+          onError(err as DiscordOpsError, input);
+        } catch (hookErr) {
+          logger.error("onError hook threw", {
+            error: hookErr instanceof Error ? hookErr.message : String(hookErr),
+          });
+        }
+      }
     });
     return;
   }) as Notifier<TTopics>;
