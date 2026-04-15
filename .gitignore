@@ -11,3 +11,5 @@ coverage/
 .idea/
 .pnpm-store/
 *.tsbuildinfo
+*.bundled_*.mjs
+*.timestamp-*.mjs
