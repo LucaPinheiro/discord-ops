@@ -4,7 +4,7 @@
 
 [![npm version](https://img.shields.io/npm/v/discord-ops.svg)](https://www.npmjs.com/package/discord-ops)
 [![license](https://img.shields.io/npm/l/discord-ops.svg)](./LICENSE)
-[![CI](https://github.com/lucapgomes/discord-ops/actions/workflows/ci.yml/badge.svg)](https://github.com/lucapgomes/discord-ops/actions/workflows/ci.yml)
+[![CI](https://github.com/LucaPinheiro/discord-ops/actions/workflows/ci.yml/badge.svg)](https://github.com/LucaPinheiro/discord-ops/actions/workflows/ci.yml)
 
 `discord-ops` is the lightest way to get "something happened" messages from your backend into a Discord channel. Signup notifications, payment alerts, error pings — stuff that used to need Datadog, Sentry, or a PagerDuty trial. Drop it into any Node backend in two minutes.
 

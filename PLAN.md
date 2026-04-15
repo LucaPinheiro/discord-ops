@@ -175,6 +175,6 @@ Total pra algo "pronto pra mostrar": **2 semanas** de trabalho focado.
 
 2. **Escopo npm** — publicar como `discord-ops` (sem escopo) ou `@seunome/discord-ops`? Sem escopo pega melhor, mas nome tem que estar livre.
 
-3. **GitHub org ou user** — vai ficar no `github.com/lucapgomes` ou vai criar uma org (tipo `github.com/discord-ops`)? Org ajuda se quiser transmitir "projeto", não "projeto pessoal".
+3. **GitHub org ou user** — vai ficar no `github.com/LucaPinheiro` ou vai criar uma org (tipo `github.com/discord-ops`)? Org ajuda se quiser transmitir "projeto", não "projeto pessoal".
 
 4. **Fases 4 e 5 — ordem**: quer Python logo depois do Node (fase 4 antes de deploy), ou prefere lançar o proxy Cloudflare primeiro porque é o que você já domina?

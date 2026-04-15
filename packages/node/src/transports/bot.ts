@@ -52,7 +52,7 @@ export async function sendViaBot<TTopics extends string>(
       headers: {
         Authorization: `Bot ${cfg.token}`,
         "Content-Type": "application/json",
-        "User-Agent": "discord-ops (https://github.com/lucapgomes/discord-ops)",
+        "User-Agent": "discord-ops (https://github.com/LucaPinheiro/discord-ops)",
       },
       body: { content: input.message },
     },

@@ -60,7 +60,7 @@ export async function sendViaWebhook<TTopics extends string>(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "User-Agent": "discord-ops (https://github.com/lucapgomes/discord-ops)",
+        "User-Agent": "discord-ops (https://github.com/LucaPinheiro/discord-ops)",
       },
       body,
     },

@@ -17,7 +17,7 @@ const notify = createNotifier({
 notify({ topic: "signup", message: `New user: ${user.email}` });
 ```
 
-Full docs, setup guides and examples: **[github.com/lucapgomes/discord-ops](https://github.com/lucapgomes/discord-ops)**.
+Full docs, setup guides and examples: **[github.com/LucaPinheiro/discord-ops](https://github.com/LucaPinheiro/discord-ops)**.
 
 ## License
 

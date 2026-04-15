@@ -5,7 +5,7 @@ Thanks for considering a contribution!
 ## Getting started
 
 ```bash
-git clone https://github.com/lucapgomes/discord-ops.git
+git clone https://github.com/LucaPinheiro/discord-ops.git
 cd discord-ops
 npm install
 npm run test:run
