@@ -21,6 +21,8 @@ jobs:
           registry-url: https://registry.npmjs.org
 
       - run: npm ci
+      - name: Security audit (fail on moderate+ vulns in prod deps)
+        run: npm audit --omit=dev --audit-level=moderate
       - run: npm run typecheck
       - run: npm run test:run
       - run: npm run build
