@@ -20,7 +20,7 @@ const notify = createNotifier({
 notify({ topic: "signup", message: `New user: ${user.email}` });
 ```
 
-That's it. The call never throws, has a 3-second timeout, retries on 429/5xx, and drops silently outside production.
+That's it. The call never throws, has a 5-second timeout, retries on 429/5xx, and drops silently outside production.
 
 ## Why this exists
 
@@ -127,7 +127,7 @@ createNotifier({
   // Common options:
   enabledIn: ["production"],            // default: only fires in production
   environment: "production",            // default: derived from NODE_ENV
-  timeoutMs: 3000,                      // default: 3s
+  timeoutMs: 5000,                      // default: 5s
   retry: {
     maxAttempts: 3,                     // default: 3
     baseDelayMs: 250,                   // default: 250
@@ -137,8 +137,44 @@ createNotifier({
   defaultUsername: "SignupBot",         // webhook only
   defaultAvatarUrl: "https://...",      // webhook only
   awaitByDefault: false,                // default: false (fire-and-forget)
+  onError: (err, input) => metrics.inc("notify.fail", { code: err.code }),
+  onRetry: (e) => metrics.inc("notify.retry", { reason: e.reason }),
 });
 ```
+
+### Observability hooks
+
+Because fire-and-forget swallows errors, `onError` is the only way your app
+knows a notification failed. Pair with `onRetry` to spot rate-limit pressure:
+
+```ts
+const notify = createNotifier({
+  mode: "webhook",
+  webhooks: { ... },
+  onError: (err, input) => {
+    sentry.captureException(err, { extra: { topic: input.topic } });
+  },
+  onRetry: ({ attempt, reason, status }) => {
+    if (reason === "status" && status === 429) rateLimitedCounter.inc();
+  },
+});
+```
+
+### Cancelling in-flight notifications
+
+Pass an `AbortSignal` to cancel mid-flight — e.g. when a request context ends:
+
+```ts
+const ac = new AbortController();
+req.on("close", () => ac.abort());
+await notify.async({ topic: "signup", message: "...", signal: ac.signal });
+```
+
+### A note on Discord markdown
+
+Message content is rendered as Discord markdown — `**bold**`, backticks, and
+`@everyone` all behave as you'd expect. If you interpolate untrusted input,
+wrap it in a code block or sanitize first.
 
 Env var reference: [docs/env-vars.md](./docs/env-vars.md).
 
