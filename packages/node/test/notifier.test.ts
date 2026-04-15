@@ -262,7 +262,7 @@ describe("createNotifier (bot mode)", () => {
     const notify = createNotifier(
       {
         mode: "bot",
-        token: "my-super-secret-token-value",
+        token: "my-super-secret-bot-token-abcdefghijklmnopqrstuvwxyz-123",
         channels: { login: "12345678901234567" },
         enabledIn: ["test"],
         environment: "test",
@@ -275,14 +275,14 @@ describe("createNotifier (bot mode)", () => {
     expect(res.ok).toBe(true);
     expect(res.messageId).toBe("msgbot");
     expect(mock.calls[0]!.url).toBe("https://discord.com/api/v10/channels/12345678901234567/messages");
-    expect(mock.calls[0]!.headers["Authorization"]).toBe("Bot my-super-secret-token-value");
+    expect(mock.calls[0]!.headers["Authorization"]).toBe("Bot my-super-secret-bot-token-abcdefghijklmnopqrstuvwxyz-123");
   });
 
   it("rejects invalid channel ID at init", () => {
     expect(() =>
       createNotifier({
         mode: "bot",
-        token: "my-super-secret-token-value",
+        token: "my-super-secret-bot-token-abcdefghijklmnopqrstuvwxyz-123",
         channels: { login: "abc" },
         enabledIn: ["test"],
         environment: "test",
@@ -296,7 +296,7 @@ describe("createNotifier (bot mode)", () => {
     const notify = createNotifier(
       {
         mode: "bot",
-        token: "my-super-secret-token-value",
+        token: "my-super-secret-bot-token-abcdefghijklmnopqrstuvwxyz-123",
         channels: { login: "12345678901234567" },
         enabledIn: ["test"],
         environment: "test",

@@ -40,7 +40,12 @@ describe("validation", () => {
   describe("webhookUrlSchema", () => {
     it("accepts valid discord webhook URL", () => {
       expect(webhookUrlSchema.safeParse("https://discord.com/api/webhooks/123/abc").success).toBe(true);
-      expect(webhookUrlSchema.safeParse("https://discordapp.com/api/webhooks/123/abc").success).toBe(true);
+    });
+
+    it("rejects legacy discordapp.com (deprecated)", () => {
+      expect(
+        webhookUrlSchema.safeParse("https://discordapp.com/api/webhooks/123/abc").success,
+      ).toBe(false);
     });
 
     it("rejects non-discord URLs", () => {
@@ -79,6 +84,23 @@ describe("validation", () => {
 
     it("validateBotToken throws on empty", () => {
       expect(() => validateBotToken("")).toThrow(DiscordOpsError);
+    });
+
+    it("validateBotToken throws on too-short tokens (< 50 chars)", () => {
+      expect(() => validateBotToken("short.token.here")).toThrow(DiscordOpsError);
+    });
+
+    it("validateBotToken throws on tokens containing whitespace", () => {
+      expect(() =>
+        validateBotToken("has spaces in it xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"),
+      ).toThrow(DiscordOpsError);
+    });
+
+    it("validateBotToken accepts a string meeting the length and charset rules", () => {
+      // Obvious padding, not a Discord token shape. Secret scanners should ignore.
+      expect(() =>
+        validateBotToken("x".repeat(60) + ".test.fixture"),
+      ).not.toThrow();
     });
   });
 });
